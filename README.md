@@ -17,6 +17,7 @@ We advise you to invest some time and effort to produce a clean and well-present
 3. Use the `Tests/FeedStoreChallengeTests.swift` to validate your implementation. We recommend you to implement one test at a time. Follow the process: Make the test pass, commit, and move to the next one. In the end, all tests **must pass**. 
 4. If your implementation has failable operations (e.g., it might fail to load data from disk), uncomment and implement the failable test extensions at the bottom of the `Tests/FeedStoreChallengeTests.swift` test file. 
 5. When you’re done implementing your `<FeedStore>` solution, create a Pull Request from your branch to the [main challenge repo](https://github.com/essentialdevelopercom/ios-lead-essentials-feed-store-challenge). Use the name of your implementation as the title for the Pull Request, for example, *“CoreData implementation”*.
+6. Extra (optional): If your implementation persists the data across app launches (e.g., CoreData/Realm), you should add Integration Tests to check this behavior. In the lectures, we tested this behavior with Integration Tests in another target, but for this challenge, you can do it in the same test target.
 
 ## Guidelines
 
