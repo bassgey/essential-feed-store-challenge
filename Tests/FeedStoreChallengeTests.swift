@@ -220,6 +220,11 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
     private func testSpecificConfiguration() -> Realm.Configuration {
         return Realm.Configuration(inMemoryIdentifier: self.name, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
     }
+    
+    private func testSpecificInvalidConfiguration() -> Realm.Configuration {
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        return Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+    }
 }
 
 //
@@ -240,27 +245,18 @@ extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 
 		assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
 	}
-    
-    private func testSpecificInvalidConfiguration() -> Realm.Configuration {
-        let invalidStoreURL = URL(string: "invalid://store-url")!
-        return Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
-    }
 }
 
 extension FeedStoreChallengeTests: FailableDeleteFeedStoreSpecs {
 
 	func test_delete_deliversErrorOnDeletionError() {
-        let invalidStoreURL = URL(string: "invalid://store-url")!
-        let invalidRealmConfiguration = Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
-		let sut = makeSUT(configuration: invalidRealmConfiguration)
+		let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
 
 		assertThatDeleteDeliversErrorOnDeletionError(on: sut)
 	}
 
 	func test_delete_hasNoSideEffectsOnDeletionError() {
-        let invalidStoreURL = URL(string: "invalid://store-url")!
-        let invalidRealmConfiguration = Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
-        let sut = makeSUT(configuration: invalidRealmConfiguration)
+        let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
 
 		assertThatDeleteHasNoSideEffectsOnDeletionError(on: sut)
 	}
