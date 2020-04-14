@@ -108,7 +108,7 @@ class RealmFeedStore: FeedStore {
             completion(RealmFeedStore.mapModels(realmCache))
         } else {
             completion(.empty)
-        }            
+        }
     }
     
     private static func mapModels(_ realmCache: RealmFeedCache) -> RetrieveCachedFeedResult {
@@ -230,20 +230,21 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 
 	func test_insert_deliversErrorOnInsertionError() {
-        let invalidStoreURL = URL(string: "invalid://store-url")!
-        let invalidStoreConfiguration = Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
-		let sut = makeSUT(configuration: invalidStoreConfiguration)
+		let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
 
 		assertThatInsertDeliversErrorOnInsertionError(on: sut)
 	}
 
 	func test_insert_hasNoSideEffectsOnInsertionError() {
-        let invalidStoreURL = URL(string: "invalid://store-url")!
-        let invalidStoreConfiguration = Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
-        let sut = makeSUT(configuration: invalidStoreConfiguration)
+        let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
 
 		assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
 	}
+    
+    private func testSpecificInvalidConfiguration() -> Realm.Configuration {
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        return Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+    }
 }
 
 //extension FeedStoreChallengeTests: FailableDeleteFeedStoreSpecs {
