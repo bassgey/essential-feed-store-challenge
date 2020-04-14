@@ -227,11 +227,15 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
     }
 }
 
-//
-// Uncomment the following tests if your implementation has failable operations.
-// Otherwise, delete the commented out code!
-//
 
+//
+//  This failable tests are partially complete because they are not testing
+//  the read/write errors, but the error is throwed during the db opening/creation
+//  operation.
+//
+//  We still keep the tests because they allowed us to fix the side effects of
+//  error management during the retrieve phase.
+//
 extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 
 	func test_insert_deliversErrorOnInsertionError() {
