@@ -211,8 +211,8 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	
 	// - MARK: Helpers
 	
-	private func makeSUT(file: StaticString = #file, line: UInt = #line) -> FeedStore {
-		let sut = RealmFeedStore(configuration: testSpecificConfiguration())
+    private func makeSUT(configuration: Realm.Configuration? = nil, file: StaticString = #file, line: UInt = #line) -> FeedStore {
+		let sut = RealmFeedStore(configuration: configuration ?? testSpecificConfiguration())
         
         trackForMemoryLeaks(sut, file: file, line: line)
         
@@ -222,7 +222,6 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
     private func testSpecificConfiguration() -> Realm.Configuration {
         return Realm.Configuration(inMemoryIdentifier: self.name, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
     }
-	
 }
 
 //
@@ -230,37 +229,22 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 // Otherwise, delete the commented out code!
 //
 
-//extension FeedStoreChallengeTests: FailableRetrieveFeedStoreSpecs {
-//
-//	func test_retrieve_deliversFailureOnRetrievalError() {
-////		let sut = makeSUT()
-////
-////		assertThatRetrieveDeliversFailureOnRetrievalError(on: sut)
-//	}
-//
-//	func test_retrieve_hasNoSideEffectsOnFailure() {
-////		let sut = makeSUT()
-////
-////		assertThatRetrieveHasNoSideEffectsOnFailure(on: sut)
-//	}
-//
-//}
+extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 
-//extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
+	func test_insert_deliversErrorOnInsertionError() {
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        let invalidStoreConfiguration = Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+		let sut = makeSUT(configuration: invalidStoreConfiguration)
+
+		assertThatInsertDeliversErrorOnInsertionError(on: sut)
+	}
+
+	func test_insert_hasNoSideEffectsOnInsertionError() {
+//		let sut = makeSUT()
 //
-//	func test_insert_deliversErrorOnInsertionError() {
-////		let sut = makeSUT()
-////
-////		assertThatInsertDeliversErrorOnInsertionError(on: sut)
-//	}
-//
-//	func test_insert_hasNoSideEffectsOnInsertionError() {
-////		let sut = makeSUT()
-////
-////		assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
-//	}
-//
-//}
+//		assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
+	}
+}
 
 //extension FeedStoreChallengeTests: FailableDeleteFeedStoreSpecs {
 //
