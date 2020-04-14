@@ -76,7 +76,7 @@ class RealmFeedStore: FeedStore {
         }
     }
     
-    static func mapRealm(_ feed: [LocalFeedImage], timestamp: Date) -> RealmFeedCache {
+    private static func mapRealm(_ feed: [LocalFeedImage], timestamp: Date) -> RealmFeedCache {
         return RealmFeedCache(value: ["timestamp": timestamp, "feed": feed.toRealmModel()])
     }
     
@@ -101,7 +101,7 @@ class RealmFeedStore: FeedStore {
         }
     }
     
-    static func mapModels(_ realmCache: RealmFeedCache) -> RetrieveCachedFeedResult {
+    private static func mapModels(_ realmCache: RealmFeedCache) -> RetrieveCachedFeedResult {
         do {
             let localFeed = try RealmFeedImageMapper.toModels(realmCache.feed)
             return .found(feed: localFeed, timestamp: realmCache.timestamp)
