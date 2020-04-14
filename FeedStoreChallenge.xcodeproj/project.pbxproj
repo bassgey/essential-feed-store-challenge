@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,6 +18,7 @@
 		08CE2BB52285BEF100183A1B /* FeedStoreChallengeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08CE2BB42285BEF100183A1B /* FeedStoreChallengeTests.swift */; };
 		ADB1802AFF53DA0B9363EF21 /* Pods_FeedStoreChallenge.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DC3BE91CA551A30B3BBAF458 /* Pods_FeedStoreChallenge.framework */; };
 		C85105061976E20B49E140A7 /* Pods_Tests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A3CB641F06BFD7333DD481C1 /* Pods_Tests.framework */; };
+		E50D2C2E24461DAF0073D0C3 /* XCTestCase+MemoryLeakTracking.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50D2C2D24461DAF0073D0C3 /* XCTestCase+MemoryLeakTracking.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,6 +50,7 @@
 		A3CB641F06BFD7333DD481C1 /* Pods_Tests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Tests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		D6C47753BAFAD42221864A7D /* Pods-Tests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Tests.debug.xcconfig"; path = "Target Support Files/Pods-Tests/Pods-Tests.debug.xcconfig"; sourceTree = "<group>"; };
 		DC3BE91CA551A30B3BBAF458 /* Pods_FeedStoreChallenge.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_FeedStoreChallenge.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		E50D2C2D24461DAF0073D0C3 /* XCTestCase+MemoryLeakTracking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "XCTestCase+MemoryLeakTracking.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +107,7 @@
 		08CE2B982285BBD100183A1B /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				E50D2C2C24461D8E0073D0C3 /* Helpers */,
 				08CE2BA92285BCE700183A1B /* FeedStoreSpecs */,
 				08CE2BB42285BEF100183A1B /* FeedStoreChallengeTests.swift */,
 				08CE2B9B2285BBD100183A1B /* Info.plist */,
@@ -132,7 +135,6 @@
 				D6C47753BAFAD42221864A7D /* Pods-Tests.debug.xcconfig */,
 				9D043A2A8E37AFF2F20852DC /* Pods-Tests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -143,6 +145,14 @@
 				A3CB641F06BFD7333DD481C1 /* Pods_Tests.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E50D2C2C24461D8E0073D0C3 /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				E50D2C2D24461DAF0073D0C3 /* XCTestCase+MemoryLeakTracking.swift */,
+			);
+			path = Helpers;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -334,6 +344,7 @@
 				08CE2BB22285BCE700183A1B /* XCTestCase+FailableDeleteFeedStoreSpecs.swift in Sources */,
 				08CE2BB02285BCE700183A1B /* FeedStoreSpecs.swift in Sources */,
 				08CE2BB12285BCE700183A1B /* XCTestCase+FailableRetrieveFeedStoreSpecs.swift in Sources */,
+				E50D2C2E24461DAF0073D0C3 /* XCTestCase+MemoryLeakTracking.swift in Sources */,
 				08CE2BAF2285BCE700183A1B /* XCTestCase+FeedStoreSpecs.swift in Sources */,
 				08CE2BB32285BCE700183A1B /* XCTestCase+FailableInsertFeedStoreSpecs.swift in Sources */,
 				08CE2BB52285BEF100183A1B /* FeedStoreChallengeTests.swift in Sources */,
