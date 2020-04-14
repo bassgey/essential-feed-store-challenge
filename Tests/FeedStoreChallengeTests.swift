@@ -98,19 +98,17 @@ class RealmFeedStore: FeedStore {
     }
     
     func retrieve(completion: @escaping RetrievalCompletion) {
-        do {
-            let realm = try Realm(configuration: config)
-            
-            let realmCacheItems = realm.objects(RealmFeedCache.self)
-            if let realmCache = realmCacheItems.first {
-                completion(RealmFeedStore.mapModels(realmCache))
-            } else {
-                completion(.empty)
-            }
-            
-        } catch {
-            completion(.failure(error))
+        
+        guard let realm = try? Realm(configuration: config) else {
+            return completion(.empty)
         }
+        
+        let realmCacheItems = realm.objects(RealmFeedCache.self)
+        if let realmCache = realmCacheItems.first {
+            completion(RealmFeedStore.mapModels(realmCache))
+        } else {
+            completion(.empty)
+        }            
     }
     
     private static func mapModels(_ realmCache: RealmFeedCache) -> RetrieveCachedFeedResult {
@@ -240,9 +238,11 @@ extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 	}
 
 	func test_insert_hasNoSideEffectsOnInsertionError() {
-//		let sut = makeSUT()
-//
-//		assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        let invalidStoreConfiguration = Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+        let sut = makeSUT(configuration: invalidStoreConfiguration)
+
+		assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
 	}
 }
 
