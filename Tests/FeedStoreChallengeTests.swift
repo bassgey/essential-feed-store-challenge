@@ -247,18 +247,19 @@ extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
     }
 }
 
-//extension FeedStoreChallengeTests: FailableDeleteFeedStoreSpecs {
+extension FeedStoreChallengeTests: FailableDeleteFeedStoreSpecs {
+
+	func test_delete_deliversErrorOnDeletionError() {
+        let invalidStoreURL = URL(string: "invalid://store-url")!
+        let invalidRealmConfiguration = Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+		let sut = makeSUT(configuration: invalidRealmConfiguration)
+
+		assertThatDeleteDeliversErrorOnDeletionError(on: sut)
+	}
+
+	func test_delete_hasNoSideEffectsOnDeletionError() {
+//		let sut = makeSUT()
 //
-//	func test_delete_deliversErrorOnDeletionError() {
-////		let sut = makeSUT()
-////
-////		assertThatDeleteDeliversErrorOnDeletionError(on: sut)
-//	}
-//
-//	func test_delete_hasNoSideEffectsOnDeletionError() {
-////		let sut = makeSUT()
-////
-////		assertThatDeleteHasNoSideEffectsOnDeletionError(on: sut)
-//	}
-//
-//}
+//		assertThatDeleteHasNoSideEffectsOnDeletionError(on: sut)
+	}
+}
