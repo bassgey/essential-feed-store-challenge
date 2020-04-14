@@ -57,6 +57,13 @@ class RealmFeedStore: FeedStore {
         self.config = configuration
     }
     
+    private static func emptyCache(_ realm: Realm) {
+        let cache = realm.objects(RealmFeedCache.self)
+        realm.delete(cache)
+    }
+}
+
+extension RealmFeedStore {
     func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         do {
             let realm = try Realm(configuration: config)
@@ -71,7 +78,9 @@ class RealmFeedStore: FeedStore {
         }
         
     }
-    
+}
+
+extension RealmFeedStore {
     func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         do {
             let realm = try Realm(configuration: config)
@@ -91,12 +100,9 @@ class RealmFeedStore: FeedStore {
     private static func mapRealm(_ feed: [LocalFeedImage], timestamp: Date) -> RealmFeedCache {
         return RealmFeedCache(value: ["timestamp": timestamp, "feed": feed.toRealmModel()])
     }
-    
-    private static func emptyCache(_ realm: Realm) {
-        let cache = realm.objects(RealmFeedCache.self)
-        realm.delete(cache)
-    }
-    
+}
+
+extension RealmFeedStore {
     func retrieve(completion: @escaping RetrievalCompletion) {
         
         guard let realm = try? Realm(configuration: config) else {
