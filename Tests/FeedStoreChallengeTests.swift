@@ -4,16 +4,110 @@
 
 import XCTest
 import FeedStoreChallenge
+import RealmSwift
+
+class RealmFeedImage: Object {
+    @objc dynamic var id: String = UUID().uuidString
+    @objc dynamic var feedDescription: String?
+    @objc dynamic var location: String?
+    @objc dynamic var url: String = ""
+    
+    override static func primaryKey() -> String? {
+        return "id"
+    }
+}
+
+class RealmFeedCache: Object {
+    @objc dynamic var timestamp = Date()
+    let feed = List<RealmFeedImage>()
+}
+
+class RealmFeedImageMapper {
+    
+    enum Convert: Error {
+        case idmapping
+        case urlmapping
+    }
+    
+    static func toModels(_ realmFeedImages: List<RealmFeedImage>) throws -> [LocalFeedImage] {
+        return try realmFeedImages.map { realmFeedImage in
+            
+            guard let idFeedImage = UUID(uuidString: realmFeedImage.id) else {
+                throw Convert.idmapping
+            }
+            
+            guard let urlFeedImage = URL(string: realmFeedImage.url) else {
+                throw Convert.urlmapping
+            }
+
+            return LocalFeedImage(
+                id: idFeedImage,
+                description: realmFeedImage.feedDescription,
+                location: realmFeedImage.location,
+                url: urlFeedImage)
+        }
+    }
+}
 
 class RealmFeedStore: FeedStore {
+    
+    let config: Realm.Configuration
+    
+    public init(configuration: Realm.Configuration) {
+        self.config = configuration
+    }
+    
     func deleteCachedFeed(completion: @escaping DeletionCompletion) {
     }
     
     func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
+        do {
+            let realm = try Realm(configuration: config)
+            let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
+            
+            try realm.write {
+                realm.add(realmCache)
+            }
+            
+            completion(nil)
+        } catch {
+            completion(error)
+        }
+    }
+    
+    static func mapRealm(_ feed: [LocalFeedImage], timestamp: Date) -> RealmFeedCache {
+        return RealmFeedCache(value: ["timestamp": timestamp, "feed": feed.toRealmModel()])
     }
     
     func retrieve(completion: @escaping RetrievalCompletion) {
-        completion(.empty)
+        do {
+            let realm = try Realm(configuration: config)
+            
+            let realmCacheItems = realm.objects(RealmFeedCache.self)
+            if let realmCache = realmCacheItems.first {
+                completion(RealmFeedStore.mapModels(realmCache))
+            } else {
+                completion(.empty)
+            }
+            
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    static func mapModels(_ realmCache: RealmFeedCache) -> RetrieveCachedFeedResult {
+        do {
+            let localFeed = try RealmFeedImageMapper.toModels(realmCache.feed)
+            return .found(feed: localFeed, timestamp: realmCache.timestamp)
+        } catch {
+            return .failure(error)
+        }
+    }
+}
+
+extension Array where Element == LocalFeedImage {
+    func toRealmModel() -> [RealmFeedImage] {
+        self.map { RealmFeedImage(value: [$0.id.uuidString, $0.description, $0.location, $0.url.absoluteString]) }
     }
 }
 
@@ -38,9 +132,9 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	}
 
 	func test_retrieve_deliversFoundValuesOnNonEmptyCache() {
-//		let sut = makeSUT()
-//
-//		assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
+		let sut = makeSUT()
+
+		assertThatRetrieveDeliversFoundValuesOnNonEmptyCache(on: sut)
 	}
 
 	func test_retrieve_hasNoSideEffectsOnNonEmptyCache() {
@@ -100,8 +194,12 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	// - MARK: Helpers
 	
 	private func makeSUT() -> FeedStore {
-		return RealmFeedStore()
+		return RealmFeedStore(configuration: testSpecificConfiguration())
 	}
+    
+    private func testSpecificConfiguration() -> Realm.Configuration {
+        return Realm.Configuration(inMemoryIdentifier: self.name, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+    }
 	
 }
 
