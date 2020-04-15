@@ -49,9 +49,9 @@ class RealmFeedImageMapper {
     }
 }
 
-class RealmFeedStore: FeedStore {
+public final class RealmFeedStore: FeedStore {
     
-    let config: Realm.Configuration
+    private let config: Realm.Configuration
     
     public init(configuration: Realm.Configuration) {
         self.config = configuration
@@ -64,7 +64,7 @@ class RealmFeedStore: FeedStore {
 }
 
 extension RealmFeedStore {
-    func deleteCachedFeed(completion: @escaping DeletionCompletion) {
+    public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         do {
             let realm = try Realm(configuration: config)
             
@@ -81,7 +81,7 @@ extension RealmFeedStore {
 }
 
 extension RealmFeedStore {
-    func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
+    public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         do {
             let realm = try Realm(configuration: config)
             let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
@@ -103,7 +103,7 @@ extension RealmFeedStore {
 }
 
 extension RealmFeedStore {
-    func retrieve(completion: @escaping RetrievalCompletion) {
+    public func retrieve(completion: @escaping RetrievalCompletion) {
         
         guard let realm = try? Realm(configuration: config) else {
             return completion(.empty)
@@ -127,7 +127,7 @@ extension RealmFeedStore {
     }
 }
 
-extension Array where Element == LocalFeedImage {
+private extension Array where Element == LocalFeedImage {
     func toRealmModel() -> [RealmFeedImage] {
         self.map { RealmFeedImage(value: [$0.id.uuidString, $0.description, $0.location, $0.url.absoluteString]) }
     }
