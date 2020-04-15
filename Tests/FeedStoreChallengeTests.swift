@@ -316,14 +316,22 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 }
 
 
+extension FeedStoreChallengeTests: FailableRetrieveFeedStoreSpecs {
+
+    func test_retrieve_deliversFailureOnRetrievalError() {
+        let sut = makeSUT(testSpecificInvalidConfiguration())
+
+        assertThatRetrieveDeliversFailureOnRetrievalError(on: sut)
+    }
+
+    func test_retrieve_hasNoSideEffectsOnFailure() {
+//        let sut = makeSUT()
 //
-//  This failable tests are partially complete because they are not testing
-//  the read/write errors, but the error is throwed during the db opening/creation
-//  operation.
-//
-//  We still keep the tests because they allowed us to fix the side effects of
-//  error management during the retrieve phase.
-//
+//        assertThatRetrieveHasNoSideEffectsOnFailure(on: sut)
+    }
+
+}
+
 extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 
 	func test_insert_deliversErrorOnInsertionError() {
