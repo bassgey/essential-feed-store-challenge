@@ -51,14 +51,16 @@ class RealmFeedImageMapper {
 
 public final class RealmFeedStore: FeedStore {
     
-    private let config: Realm.Configuration
+    public typealias RealmInitializer = () throws -> EssentialRealm
+    
+    private let realmInitializer: RealmInitializer
     private let queue = DispatchQueue(label: "\(RealmFeedStore.self)", qos: .userInitiated, attributes: .concurrent)
     
-    public init(configuration: Realm.Configuration) {
-        self.config = configuration
+    public init(initializer: @escaping RealmInitializer) {
+        self.realmInitializer = initializer
     }
     
-    private static func emptyCache(_ realm: Realm) {
+    private static func emptyCache(_ realm: EssentialRealm) {
         let cache = realm.objects(RealmFeedCache.self)
         realm.delete(cache)
     }
@@ -66,20 +68,19 @@ public final class RealmFeedStore: FeedStore {
 
 extension RealmFeedStore {
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-        let config = self.config
-        queue.async(flags: .barrier) {
-            autoreleasepool {
-                do {
-                    let realm = try Realm(configuration: config)
-                    
-                    try realm.write {
-                        RealmFeedStore.emptyCache(realm)
-                    }
-                    
-                    completion(nil)
-                } catch {
-                    completion(error)
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            
+            do {
+                let realm = try self.realmInitializer()
+                
+                try realm.write(withoutNotifying: []) {
+                    RealmFeedStore.emptyCache(realm)
                 }
+                
+                completion(nil)
+            } catch {
+                completion(error)
             }
         }
     }
@@ -87,22 +88,21 @@ extension RealmFeedStore {
 
 extension RealmFeedStore {
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-        let config = self.config
-        queue.async(flags: .barrier) {
-            autoreleasepool {
-                do {
-                    let realm = try Realm(configuration: config)
-                    
-                    let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
-                    try realm.write {
-                        RealmFeedStore.emptyCache(realm)
-                        realm.add(realmCache)
-                    }
-                    
-                    completion(nil)
-                } catch {
-                    completion(error)
+        queue.async(flags: .barrier) { [weak self] in
+            guard let self = self else { return }
+            
+            do {
+                let realm = try self.realmInitializer()
+                
+                let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
+                try realm.write(withoutNotifying: []) {
+                    RealmFeedStore.emptyCache(realm)
+                    realm.add(realmCache, update: .error)
                 }
+                
+                completion(nil)
+            } catch {
+                completion(error)
             }
         }
     }
@@ -114,18 +114,21 @@ extension RealmFeedStore {
 
 extension RealmFeedStore {
     public func retrieve(completion: @escaping RetrievalCompletion) {
-        let config = self.config
-        queue.async {
-            guard let realm = try? Realm(configuration: config) else {
-                return completion(.empty)
-            }
-            realm.refresh()
+        queue.async { [weak self] in
+            guard let self = self else { return }
             
-            let realmCacheItems = realm.objects(RealmFeedCache.self)
-            if let realmCache = realmCacheItems.first {
-                completion(RealmFeedStore.map(realmCache))
-            } else {
-                completion(.empty)
+            do {
+                let realm = try self.realmInitializer()
+                let _ = realm.refresh()
+                
+                let realmCacheItems = realm.objects(RealmFeedCache.self)
+                if let realmCache = realmCacheItems.first {
+                    completion(RealmFeedStore.map(realmCache))
+                } else {
+                    completion(.empty)
+                }
+            } catch {
+                completion(.failure(error))
             }
         }
     }
@@ -145,6 +148,15 @@ private extension Array where Element == LocalFeedImage {
         self.map { RealmFeedImage(value: [$0.id.uuidString, $0.description, $0.location, $0.url.absoluteString]) }
     }
 }
+
+public protocol EssentialRealm {
+    func objects<Element: Object>(_ type: Element.Type) -> Results<Element>
+    func write<Result>(withoutNotifying tokens: [NotificationToken], _ block: (() throws -> Result)) throws -> Result
+    func add(_ object: Object, update: Realm.UpdatePolicy)
+    func delete<Element: Object>(_ objects: Results<Element>)
+    func refresh() -> Bool
+}
+
 
 class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
   
@@ -235,8 +247,12 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	// - MARK: Helpers
     private var strongRealmReference: Realm?
 	
-    private func makeSUT(configuration: Realm.Configuration? = nil, file: StaticString = #file, line: UInt = #line) -> FeedStore {
-		let sut = RealmFeedStore(configuration: configuration ?? testSpecificConfiguration())
+    private func makeSUT(_ configuration: Realm.Configuration? = nil, setWriteError: Bool = false, file: StaticString = #file, line: UInt = #line) -> FeedStore {
+        let configuration = configuration ?? testSpecificConfiguration()
+        let sut = RealmFeedStore {
+            let realm = try Realm(configuration: configuration)
+            return RealmStub(realm: realm, throwWriteError: setWriteError)
+        }
         
         trackForMemoryLeaks(sut, file: file, line: line)
         
@@ -259,6 +275,44 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
     private func undoRealmSideEffects() {
         strongRealmReference = nil
     }
+    
+    private class RealmStub: EssentialRealm {
+        
+        private let realm: Realm
+        private let throwWriteError: Bool
+        
+        init(realm: Realm, throwWriteError: Bool) {
+            self.realm = realm
+            self.throwWriteError = throwWriteError
+        }
+        
+        func objects<Element>(_ type: Element.Type) -> Results<Element> where Element : Object {
+            return realm.objects(type)
+        }
+        
+        func write<Result>(withoutNotifying tokens: [NotificationToken], _ block: (() throws -> Result)) throws -> Result {
+            if throwWriteError {
+                throw anyError()
+            }
+            return try realm.write(withoutNotifying: tokens, block)
+        }
+        
+        func add(_ object: Object, update: Realm.UpdatePolicy) {
+            realm.add(object, update: update)
+        }
+        
+        private func anyError() -> NSError {
+            return NSError(domain: "anyDomain", code: 0, userInfo: nil)
+        }
+        
+        func delete<Element>(_ objects: Results<Element>) where Element : Object {
+            realm.delete(objects)
+        }
+        
+        func refresh() -> Bool {
+            return realm.refresh()
+        }
+    }
 }
 
 
@@ -273,13 +327,13 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 
 	func test_insert_deliversErrorOnInsertionError() {
-		let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
+		let sut = makeSUT(setWriteError: true)
 
 		assertThatInsertDeliversErrorOnInsertionError(on: sut)
 	}
 
 	func test_insert_hasNoSideEffectsOnInsertionError() {
-        let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
+        let sut = makeSUT(setWriteError: true)
 
 		assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
 	}
@@ -288,13 +342,13 @@ extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
 extension FeedStoreChallengeTests: FailableDeleteFeedStoreSpecs {
 
 	func test_delete_deliversErrorOnDeletionError() {
-		let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
+		let sut = makeSUT(setWriteError: true)
 
 		assertThatDeleteDeliversErrorOnDeletionError(on: sut)
 	}
 
 	func test_delete_hasNoSideEffectsOnDeletionError() {
-        let sut = makeSUT(configuration: testSpecificInvalidConfiguration())
+        let sut = makeSUT(setWriteError: true)
 
 		assertThatDeleteHasNoSideEffectsOnDeletionError(on: sut)
 	}
