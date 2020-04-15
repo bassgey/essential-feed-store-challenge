@@ -11,10 +11,6 @@ class RealmFeedImage: Object {
     @objc dynamic var feedDescription: String?
     @objc dynamic var location: String?
     @objc dynamic var url: String = ""
-    
-    override static func primaryKey() -> String? {
-        return "id"
-    }
 }
 
 class RealmFeedCache: Object {
