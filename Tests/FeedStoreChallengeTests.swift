@@ -52,6 +52,7 @@ class RealmFeedImageMapper {
 public final class RealmFeedStore: FeedStore {
     
     private let config: Realm.Configuration
+    private let queue = DispatchQueue(label: "\(RealmFeedStore.self)", qos: .userInitiated, attributes: .concurrent)
     
     public init(configuration: Realm.Configuration) {
         self.config = configuration
@@ -65,35 +66,44 @@ public final class RealmFeedStore: FeedStore {
 
 extension RealmFeedStore {
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
-        do {
-            let realm = try Realm(configuration: config)
-            
-            try realm.write {
-                RealmFeedStore.emptyCache(realm)
+        let config = self.config
+        queue.async(flags: .barrier) {
+            autoreleasepool {
+                do {
+                    let realm = try Realm(configuration: config)
+                    
+                    try realm.write {
+                        RealmFeedStore.emptyCache(realm)
+                    }
+                    
+                    completion(nil)
+                } catch {
+                    completion(error)
+                }
             }
-            
-            completion(nil)
-        } catch {
-            completion(error)
         }
-        
     }
 }
 
 extension RealmFeedStore {
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
-        do {
-            let realm = try Realm(configuration: config)
-            let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
-            
-            try realm.write {
-                RealmFeedStore.emptyCache(realm)
-                realm.add(realmCache)
+        let config = self.config
+        queue.async(flags: .barrier) {
+            autoreleasepool {
+                do {
+                    let realm = try Realm(configuration: config)
+                    
+                    let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
+                    try realm.write {
+                        RealmFeedStore.emptyCache(realm)
+                        realm.add(realmCache)
+                    }
+                    
+                    completion(nil)
+                } catch {
+                    completion(error)
+                }
             }
-            
-            completion(nil)
-        } catch {
-            completion(error)
         }
     }
     
@@ -104,16 +114,19 @@ extension RealmFeedStore {
 
 extension RealmFeedStore {
     public func retrieve(completion: @escaping RetrievalCompletion) {
-        
-        guard let realm = try? Realm(configuration: config) else {
-            return completion(.empty)
-        }
-        
-        let realmCacheItems = realm.objects(RealmFeedCache.self)
-        if let realmCache = realmCacheItems.first {
-            completion(RealmFeedStore.map(realmCache))
-        } else {
-            completion(.empty)
+        let config = self.config
+        queue.async {
+            guard let realm = try? Realm(configuration: config) else {
+                return completion(.empty)
+            }
+            realm.refresh()
+            
+            let realmCacheItems = realm.objects(RealmFeedCache.self)
+            if let realmCache = realmCacheItems.first {
+                completion(RealmFeedStore.map(realmCache))
+            } else {
+                completion(.empty)
+            }
         }
     }
     
@@ -134,13 +147,19 @@ private extension Array where Element == LocalFeedImage {
 }
 
 class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
-	
-//
-//   We recommend you to implement one test at a time.
-//   Uncomment the test implementations one by one.
-// 	 Follow the process: Make the test pass, commit, and move to the next one.
-//
-
+  
+    override func setUp() {
+        super.setUp()
+        
+        setupRealmStrongReference()
+    }
+    
+    override func tearDown() {
+        super.tearDown()
+        
+        undoRealmSideEffects()
+    }
+    
 	func test_retrieve_deliversEmptyOnEmptyCache() {
 		let sut = makeSUT()
 
@@ -214,6 +233,7 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	}
 	
 	// - MARK: Helpers
+    private var strongRealmReference: Realm?
 	
     private func makeSUT(configuration: Realm.Configuration? = nil, file: StaticString = #file, line: UInt = #line) -> FeedStore {
 		let sut = RealmFeedStore(configuration: configuration ?? testSpecificConfiguration())
@@ -230,6 +250,14 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
     private func testSpecificInvalidConfiguration() -> Realm.Configuration {
         let invalidStoreURL = URL(string: "invalid://store-url")!
         return Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+    }
+    
+    private func setupRealmStrongReference() {
+        strongRealmReference = try! Realm(configuration: testSpecificConfiguration())
+    }
+    
+    private func undoRealmSideEffects() {
+        strongRealmReference = nil
     }
 }
 
