@@ -36,6 +36,12 @@ public final class RealmFeedStore: FeedStore {
 }
 
 extension RealmFeedStore {
+    public static func getRequiredModelsType() -> [Object.Type] {
+        return [RealmFeedCache.self, RealmFeedImage.self]
+    }
+}
+
+extension RealmFeedStore {
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }

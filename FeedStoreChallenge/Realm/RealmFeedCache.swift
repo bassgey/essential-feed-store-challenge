@@ -9,7 +9,7 @@ import Foundation
 import RealmSwift
 
 
-public class RealmFeedCache: Object {
+internal class RealmFeedCache: Object {
     @objc dynamic var timestamp = Date()
     let feed = List<RealmFeedImage>()
 }

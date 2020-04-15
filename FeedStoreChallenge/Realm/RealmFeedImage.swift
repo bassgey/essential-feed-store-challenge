@@ -9,7 +9,7 @@ import Foundation
 import RealmSwift
 
 
-public class RealmFeedImage: Object {
+internal class RealmFeedImage: Object {
     @objc dynamic var id: String = UUID().uuidString
     @objc dynamic var feedDescription: String?
     @objc dynamic var location: String?

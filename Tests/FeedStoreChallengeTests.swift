@@ -109,12 +109,12 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	}
     
     private func testSpecificConfiguration() -> Realm.Configuration {
-        return Realm.Configuration(inMemoryIdentifier: self.name, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+        return Realm.Configuration(inMemoryIdentifier: self.name, objectTypes: RealmFeedStore.getRequiredModelsType())
     }
     
     private func testSpecificInvalidConfiguration() -> Realm.Configuration {
         let invalidStoreURL = URL(string: "invalid://store-url")!
-        return Realm.Configuration(fileURL: invalidStoreURL, objectTypes: [RealmFeedImage.self, RealmFeedCache.self])
+        return Realm.Configuration(fileURL: invalidStoreURL, objectTypes: RealmFeedStore.getRequiredModelsType())
     }
     
     private func setupRealmStrongReference() {
