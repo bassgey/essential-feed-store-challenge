@@ -325,9 +325,9 @@ extension FeedStoreChallengeTests: FailableRetrieveFeedStoreSpecs {
     }
 
     func test_retrieve_hasNoSideEffectsOnFailure() {
-//        let sut = makeSUT()
-//
-//        assertThatRetrieveHasNoSideEffectsOnFailure(on: sut)
+        let sut = makeSUT(testSpecificInvalidConfiguration())
+
+        assertThatRetrieveHasNoSideEffectsOnFailure(on: sut)
     }
 
 }
