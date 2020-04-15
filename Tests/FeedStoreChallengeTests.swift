@@ -111,13 +111,13 @@ extension RealmFeedStore {
         
         let realmCacheItems = realm.objects(RealmFeedCache.self)
         if let realmCache = realmCacheItems.first {
-            completion(RealmFeedStore.mapModels(realmCache))
+            completion(RealmFeedStore.map(realmCache))
         } else {
             completion(.empty)
         }
     }
     
-    private static func mapModels(_ realmCache: RealmFeedCache) -> RetrieveCachedFeedResult {
+    private static func map(_ realmCache: RealmFeedCache) -> RetrieveCachedFeedResult {
         do {
             let localFeed = try RealmFeedImageMapper.toModels(realmCache.feed)
             return .found(feed: localFeed, timestamp: realmCache.timestamp)
