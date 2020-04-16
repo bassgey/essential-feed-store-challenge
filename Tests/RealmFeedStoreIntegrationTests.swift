@@ -63,6 +63,34 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         wait(for: [exp], timeout: 1.0)
     }
     
+    func test_insert_overridesPreviouslyInsertedCacheValues() {
+        let sut = makeSUT()
+        let firstFeed = uniqueImageFeed()
+        let firstTimestamp = Date()
+        let latestFeed = uniqueImageFeed()
+        let latestTimestamp = Date()
+
+        sut.insert(firstFeed, timestamp: firstTimestamp) { _ in }
+        sut.insert(latestFeed, timestamp: latestTimestamp) { _ in }
+        
+        let exp = expectation(description: "Wait to retrieve from realm db")
+        sut.retrieve { result in
+            switch result {
+
+            case let .found(retrievedFeed, retrievedTimestamp):
+                XCTAssertEqual(latestFeed, retrievedFeed)
+                XCTAssertEqual(latestTimestamp, retrievedTimestamp)
+
+            case .failure(_), .empty:
+                XCTFail("Non empty cache expected, got \(result) instead.")
+            }
+            
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
+    }
+    
     // MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> FeedStore {
         let realmConfiguration = testSpecificPersistentStoreRealmConfiguration()
