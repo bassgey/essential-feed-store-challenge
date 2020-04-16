@@ -23,6 +23,7 @@
 		E5580BEE24478701003D8F77 /* RealmFeedCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5580BED24478701003D8F77 /* RealmFeedCache.swift */; };
 		E5580BF024478728003D8F77 /* RealmFeedImageMapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5580BEF24478728003D8F77 /* RealmFeedImageMapper.swift */; };
 		E5580BF22447876C003D8F77 /* RealmFeedStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = E5580BF12447876C003D8F77 /* RealmFeedStore.swift */; };
+		E58BECDD24489A35008477FE /* RealmFeedStoreIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E58BECDC24489A35008477FE /* RealmFeedStoreIntegrationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -59,6 +60,7 @@
 		E5580BED24478701003D8F77 /* RealmFeedCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmFeedCache.swift; sourceTree = "<group>"; };
 		E5580BEF24478728003D8F77 /* RealmFeedImageMapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmFeedImageMapper.swift; sourceTree = "<group>"; };
 		E5580BF12447876C003D8F77 /* RealmFeedStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmFeedStore.swift; sourceTree = "<group>"; };
+		E58BECDC24489A35008477FE /* RealmFeedStoreIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RealmFeedStoreIntegrationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -119,6 +121,7 @@
 				E50D2C2C24461D8E0073D0C3 /* Helpers */,
 				08CE2BA92285BCE700183A1B /* FeedStoreSpecs */,
 				08CE2BB42285BEF100183A1B /* RealmFeedStoreTests.swift */,
+				E58BECDC24489A35008477FE /* RealmFeedStoreIntegrationTests.swift */,
 				08CE2B9B2285BBD100183A1B /* Info.plist */,
 			);
 			path = Tests;
@@ -365,6 +368,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E58BECDD24489A35008477FE /* RealmFeedStoreIntegrationTests.swift in Sources */,
 				08CE2BB22285BCE700183A1B /* XCTestCase+FailableDeleteFeedStoreSpecs.swift in Sources */,
 				08CE2BB02285BCE700183A1B /* FeedStoreSpecs.swift in Sources */,
 				08CE2BB12285BCE700183A1B /* XCTestCase+FailableRetrieveFeedStoreSpecs.swift in Sources */,
