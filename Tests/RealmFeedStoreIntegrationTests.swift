@@ -157,4 +157,31 @@ extension RealmFeedStoreIntegrationTests {
         let retrieveSUT = makeSUT()
         expect(retrieveSUT, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
+    
+    func test_deleteWithSUTInstancesInDifferentQueues_emptiesPreviouslyInsertedCache() {
+        let retrieveSUT = makeSUT()
+        var sut: FeedStore?
+        
+        let feed = self.uniqueImageFeed()
+        let timestamp = Date()
+        let opQueue = DispatchQueue(label: "Operations \(self.name)", qos: .userInitiated, attributes: .concurrent)
+                
+        let exp1 = expectation(description: "Wait operations to realm db")
+        opQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            let realmConfiguration = self.testSpecificPersistentStoreRealmConfiguration()
+            sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
+            
+            sut?.insert(feed, timestamp: timestamp) { _ in }
+            sut?.deleteCachedFeed { _ in }
+            
+            exp1.fulfill()
+        }
+        
+        wait(for: [exp1], timeout: 2.0)
+        sut = nil
+
+        expect(retrieveSUT, toRetrieve: .empty)
+    }
 }
