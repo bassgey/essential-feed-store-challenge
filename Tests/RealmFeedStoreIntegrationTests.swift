@@ -14,8 +14,7 @@ extension Realm: RealmAdapter {}
 class RealmFeedStoreIntegrationTests: XCTestCase {
     
     override func setUp() {
-        let cacheDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        let realmURL = cacheDirectory.appendingPathComponent("\(type(of: self))")
+        let realmURL = testSpecificPersistentStoreURL()
         let realmURLs = [
             realmURL,
             realmURL.appendingPathExtension("lock"),
@@ -29,9 +28,7 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     }
     
     func test_retrieve_deliversEmptyOnEmptyCache() {
-        let cacheDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        let realmDBURL = cacheDirectory.appendingPathComponent("\(type(of: self))")
-        let realmConfiguration = Realm.Configuration(fileURL: realmDBURL, objectTypes: RealmFeedStore.getRequiredModelsType())
+        let realmConfiguration = testSpecificPersistentStoreRealmConfiguration()
         let sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
         
         let exp = expectation(description: "Wait to retrieve from realm db")
@@ -48,5 +45,19 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         }
         
         wait(for: [exp], timeout: 1.0)
+    }
+    
+    // MARK: - Helpers
+    
+    private func cachesDirectory() -> URL {
+        return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+    }
+    
+    private func testSpecificPersistentStoreURL() -> URL {
+        return cachesDirectory().appendingPathComponent("\(type(of: self))")
+    }
+    
+    private func testSpecificPersistentStoreRealmConfiguration() -> Realm.Configuration {
+        return Realm.Configuration(fileURL: testSpecificPersistentStoreURL(), objectTypes: RealmFeedStore.getRequiredModelsType())
     }
 }
