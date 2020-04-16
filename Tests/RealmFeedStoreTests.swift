@@ -125,7 +125,7 @@ class RealmFeedStoreTests: XCTestCase, FeedStoreSpecs {
         strongRealmReference = nil
     }
     
-    private class RealmStub: EssentialRealm {
+    private class RealmStub: RealmAdapter {
         
         private let realm: Realm
         private let throwWriteError: Bool

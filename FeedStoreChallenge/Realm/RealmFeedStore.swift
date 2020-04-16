@@ -9,7 +9,7 @@ import Foundation
 import RealmSwift
 
 
-public protocol EssentialRealm {
+public protocol RealmAdapter {
     func objects<Element: Object>(_ type: Element.Type) -> Results<Element>
     func write<Result>(withoutNotifying tokens: [NotificationToken], _ block: (() throws -> Result)) throws -> Result
     func add(_ object: Object, update: Realm.UpdatePolicy)
@@ -20,7 +20,7 @@ public protocol EssentialRealm {
 
 public final class RealmFeedStore: FeedStore {
     
-    public typealias RealmInitializer = () throws -> EssentialRealm
+    public typealias RealmInitializer = () throws -> RealmAdapter
     
     private let realmInitializer: RealmInitializer
     private let queue = DispatchQueue(label: "\(RealmFeedStore.self)", qos: .userInitiated, attributes: .concurrent)
@@ -29,7 +29,7 @@ public final class RealmFeedStore: FeedStore {
         self.realmInitializer = initializer
     }
     
-    private static func emptyCache(_ realm: EssentialRealm) {
+    private static func emptyCache(_ realm: RealmAdapter) {
         let cache = realm.objects(RealmFeedCache.self)
         realm.delete(cache)
     }
