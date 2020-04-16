@@ -22,20 +22,7 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     func test_retrieve_deliversEmptyOnEmptyCache() {
         let sut = makeSUT()
         
-        let exp = expectation(description: "Wait to retrieve from realm db")
-        sut.retrieve { result in
-            switch result {
-                
-            case .failure(_), .found(_, _):
-                XCTFail("Empty cache expected, got \(result) instead.")
-            default:
-                break
-            }
-            
-            exp.fulfill()
-        }
-        
-        wait(for: [exp], timeout: 1.0)
+        expect(sut, toRetrieve: .empty)
     }
     
     func test_retrieve_deliversFoundValuesOnNonEmptyCache() {
@@ -44,23 +31,8 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         let timestamp = Date()
         
         sut.insert(feed, timestamp: timestamp) { _ in }
-        
-        let exp = expectation(description: "Wait to retrieve from realm db")
-        sut.retrieve { result in
-            switch result {
 
-            case let .found(retrievedFeed, retrievedTimestamp):
-                XCTAssertEqual(feed, retrievedFeed)
-                XCTAssertEqual(timestamp, retrievedTimestamp)
-
-            case .failure(_), .empty:
-                XCTFail("Non empty cache expected, got \(result) instead.")
-            }
-            
-            exp.fulfill()
-        }
-        
-        wait(for: [exp], timeout: 1.0)
+        expect(sut, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
     
     func test_insert_overridesPreviouslyInsertedCacheValues() {
@@ -72,23 +44,8 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
 
         sut.insert(firstFeed, timestamp: firstTimestamp) { _ in }
         sut.insert(latestFeed, timestamp: latestTimestamp) { _ in }
-        
-        let exp = expectation(description: "Wait to retrieve from realm db")
-        sut.retrieve { result in
-            switch result {
 
-            case let .found(retrievedFeed, retrievedTimestamp):
-                XCTAssertEqual(latestFeed, retrievedFeed)
-                XCTAssertEqual(latestTimestamp, retrievedTimestamp)
-
-            case .failure(_), .empty:
-                XCTFail("Non empty cache expected, got \(result) instead.")
-            }
-            
-            exp.fulfill()
-        }
-        
-        wait(for: [exp], timeout: 1.0)
+        expect(sut, toRetrieve: .found(feed: latestFeed, timestamp: latestTimestamp))
     }
     
     // MARK: - Helpers
@@ -99,6 +56,29 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         trackForMemoryLeaks(sut, file: file, line: line)
         
         return sut
+    }
+    
+    private func expect(_ sut: FeedStore, toRetrieve expectedResult: RetrieveCachedFeedResult, file: StaticString = #file, line: UInt = #line) {
+        let exp = expectation(description: "Wait to retrieve from realm db")
+        
+        sut.retrieve { retrievedResult in
+            switch (expectedResult, retrievedResult) {
+                case (.empty, .empty),
+                     (.failure, .failure):
+                    break
+                    
+                case let (.found(expectedFeed, expectedTimestamp), .found(retrievedFeed, retrievedTimestamp)):
+                    XCTAssertEqual(retrievedFeed, expectedFeed, file: file, line: line)
+                    XCTAssertEqual(retrievedTimestamp, expectedTimestamp, file: file, line: line)
+                    
+                default:
+                    XCTFail("Expected to retrieve \(expectedResult), got \(retrievedResult) instead", file: file, line: line)
+            }
+            
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
     }
     
     private func uniqueImageFeed() -> [LocalFeedImage] {
