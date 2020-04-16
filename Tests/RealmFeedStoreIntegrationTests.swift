@@ -51,16 +51,9 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     func test_delete_deliversNoErrorOnEmptyCache() {
         let sut = makeSUT()
         
-        let exp = expectation(description: "Waiting to delete cache from realm db")
-        var receivedError: Error?
-        sut.deleteCachedFeed { deletionError in
-            receivedError = deletionError
-            exp.fulfill()
-        }
+        let deletionError = deleteCache(sut)
         
-        wait(for: [exp], timeout: 1.0)
-        
-        XCTAssertNil(receivedError)
+        XCTAssertNil(deletionError)
     }
     
     func test_delete_deliversNoErrorOnNonEmptyCache() {
@@ -70,16 +63,9 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         
         sut.insert(feed, timestamp: timestamp) { _ in }
 
-        let exp = expectation(description: "Waiting to delete cache from realm db")
-        var receivedError: Error?
-        sut.deleteCachedFeed { deletionError in
-            receivedError = deletionError
-            exp.fulfill()
-        }
+        let deletionError = deleteCache(sut)
         
-        wait(for: [exp], timeout: 1.0)
-        
-        XCTAssertNil(receivedError)
+        XCTAssertNil(deletionError)
     }
     
     // MARK: - Helpers
@@ -113,6 +99,18 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         }
         
         wait(for: [exp], timeout: 1.0)
+    }
+    
+    private func deleteCache(_ sut: FeedStore) -> Error? {
+        let exp = expectation(description: "Waiting to delete cache from realm db")
+        var receivedError: Error?
+        sut.deleteCachedFeed { deletionError in
+            receivedError = deletionError
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
+        return receivedError
     }
     
     private func uniqueImageFeed() -> [LocalFeedImage] {
