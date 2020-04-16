@@ -36,7 +36,15 @@ Finally, add to this README file:
 
 ### Comments and remarks you think other developers will find useful.
 
-...
+#### `setUp()` & `tearDown()` methods
+
+In the `RealmFeedStoreTests` class, a _"InMemory"_ realm implementation is used.
+When async queue management for the FeedStore operations was introduced, ARC has started to release the DB between the call of write and read cache operations destroying all the content of the cache 
+(this behaviour happen because the realm object must be instantiated in every thread to avoid race conditions and Realm Exceptions).
+This does not happen if we use persistent storage, but for the test, I have decided to set up a strong reference to the realm _"In Memory"_ object.
+The `setUp()` and `tearDown()` methods are used to **set** and **release** this realm reference avoiding the release of the DB.
+
+
 
 ### The Dependency Diagram demonstrating the architecture of your solution. 
 
