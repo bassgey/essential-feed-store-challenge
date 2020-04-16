@@ -74,4 +74,4 @@ I have created this method for various reasons:
 
 ### The Dependency Diagram demonstrating the architecture of your solution. 
 
-...
+![RealmFeedStore Diagram](RealmFeedStoreDiagram.png)
