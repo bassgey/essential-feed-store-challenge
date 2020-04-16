@@ -20,8 +20,7 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     }
     
     func test_retrieve_deliversEmptyOnEmptyCache() {
-        let realmConfiguration = testSpecificPersistentStoreRealmConfiguration()
-        let sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
+        let sut = makeSUT()
         
         let exp = expectation(description: "Wait to retrieve from realm db")
         sut.retrieve { result in
@@ -40,8 +39,7 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     }
     
     func test_retrieve_deliversFoundValuesOnNonEmptyCache() {
-        let realmConfiguration = testSpecificPersistentStoreRealmConfiguration()
-        let sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
+        let sut = makeSUT()
         let feed = uniqueImageFeed()
         let timestamp = Date()
         
@@ -66,6 +64,11 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     }
     
     // MARK: - Helpers
+    private func makeSUT() -> FeedStore {
+        let realmConfiguration = testSpecificPersistentStoreRealmConfiguration()
+        return RealmFeedStore { try Realm(configuration: realmConfiguration) }
+    }
+    
     private func uniqueImageFeed() -> [LocalFeedImage] {
         return [uniqueImage(), uniqueImage()]
     }
