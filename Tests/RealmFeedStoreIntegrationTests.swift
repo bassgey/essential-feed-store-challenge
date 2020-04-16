@@ -74,7 +74,7 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         let timestamp = Date()
         
         sut.insert(feed, timestamp: timestamp) { _ in }
-        let _ = deleteCache(sut)
+        deleteCache(sut)
         
         expect(sut, toRetrieve: .empty)
     }
@@ -112,6 +112,7 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         wait(for: [exp], timeout: 1.0)
     }
     
+    @discardableResult
     private func deleteCache(_ sut: FeedStore) -> Error? {
         let exp = expectation(description: "Waiting to delete cache from realm db")
         var receivedError: Error?
