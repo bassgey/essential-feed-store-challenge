@@ -45,12 +45,13 @@ extension RealmFeedStore {
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            
             do {
-                let realm = try self.realmInitializer()
-                
-                try realm.write(withoutNotifying: []) {
-                    RealmFeedStore.emptyCache(realm)
+                try autoreleasepool {
+                    let realm = try self.realmInitializer()
+                    
+                    try realm.write(withoutNotifying: []) {
+                        RealmFeedStore.emptyCache(realm)
+                    }
                 }
                 
                 completion(nil)
@@ -65,16 +66,16 @@ extension RealmFeedStore {
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         queue.async(flags: .barrier) { [weak self] in
             guard let self = self else { return }
-            
             do {
-                let realm = try self.realmInitializer()
-                
-                let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
-                try realm.write(withoutNotifying: []) {
-                    RealmFeedStore.emptyCache(realm)
-                    realm.add(realmCache, update: .error)
+                try autoreleasepool {
+                    let realm = try self.realmInitializer()
+                    
+                    let realmCache = RealmFeedStore.mapRealm(feed, timestamp: timestamp)
+                    try realm.write(withoutNotifying: []) {
+                        RealmFeedStore.emptyCache(realm)
+                        realm.add(realmCache, update: .error)
+                    }
                 }
-                
                 completion(nil)
             } catch {
                 completion(error)
