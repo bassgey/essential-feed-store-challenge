@@ -63,6 +63,25 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         XCTAssertNil(receivedError)
     }
     
+    func test_delete_deliversNoErrorOnNonEmptyCache() {
+        let sut = makeSUT()
+        let feed = uniqueImageFeed()
+        let timestamp = Date()
+        
+        sut.insert(feed, timestamp: timestamp) { _ in }
+
+        let exp = expectation(description: "Waiting to delete cache from realm db")
+        var receivedError: Error?
+        sut.deleteCachedFeed { deletionError in
+            receivedError = deletionError
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
+        
+        XCTAssertNil(receivedError)
+    }
+    
     // MARK: - Helpers
     private func makeSUT(file: StaticString = #file, line: UInt = #line) -> FeedStore {
         let realmConfiguration = testSpecificPersistentStoreRealmConfiguration()
