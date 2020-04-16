@@ -65,6 +65,12 @@ This solution breaks some rules like:
 - The protocol was introduced only to test a specific behaviour (inject write error)
 - I have to make the original `Realm` struct to conforms to the `RealmAdapter` protocol
 
+#### `RealmFeedStore.getRequiredModelsType()`
+I have created this method for various reasons:
+- hide implementation details from other modules (this let me set access modifiers of realm models `internal`)
+- permit to set up the `Realm.Configuration` in isolation (dedicating a separate DB to manage cache) or in other modes (one DB for all for example)
+- specifying object types in `Realm.Configuration` instance perform better
+
 
 ### The Dependency Diagram demonstrating the architecture of your solution. 
 
