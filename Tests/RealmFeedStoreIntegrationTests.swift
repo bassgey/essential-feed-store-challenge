@@ -19,6 +19,12 @@ class RealmFeedStoreIntegrationTests: XCTestCase, FeedStoreSpecs {
         setupEmptyStoreState()
     }
     
+    override func tearDown() {
+        super.tearDown()
+        
+        undoStoreSideEffects()
+    }
+    
     func test_retrieve_deliversEmptyOnEmptyCache() {
         let sut = makeSUT()
 
@@ -114,6 +120,10 @@ class RealmFeedStoreIntegrationTests: XCTestCase, FeedStoreSpecs {
     }
     
     private func setupEmptyStoreState() {
+        removeStoreDB()
+    }
+    
+    private func undoStoreSideEffects() {
         removeStoreDB()
     }
     
