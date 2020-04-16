@@ -14,6 +14,8 @@ extension Realm: RealmAdapter {}
 class RealmFeedStoreIntegrationTests: XCTestCase {
     
     override func setUp() {
+        super.setUp()
+        
         setupEmptyStoreState()
     }
     
