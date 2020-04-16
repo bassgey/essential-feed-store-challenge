@@ -39,8 +39,46 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
         wait(for: [exp], timeout: 1.0)
     }
     
+    func test_retrieve_deliversFoundValuesOnNonEmptyCache() {
+        let realmConfiguration = testSpecificPersistentStoreRealmConfiguration()
+        let sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
+        let feed = uniqueImageFeed()
+        let timestamp = Date()
+        
+        sut.insert(feed, timestamp: timestamp) { _ in }
+        
+        let exp = expectation(description: "Wait to retrieve from realm db")
+        sut.retrieve { result in
+            switch result {
+
+            case let .found(retrievedFeed, retrievedTimestamp):
+                XCTAssertEqual(feed, retrievedFeed)
+                XCTAssertEqual(timestamp, retrievedTimestamp)
+
+            case .failure(_), .empty:
+                XCTFail("Non empty cache expected, got \(result) instead.")
+            }
+            
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 1.0)
+    }
+    
     // MARK: - Helpers
     
+    func uniqueImageFeed() -> [LocalFeedImage] {
+        return [uniqueImage(), uniqueImage()]
+    }
+    
+    func uniqueImage() -> LocalFeedImage {
+        return LocalFeedImage(id: UUID(), description: "any", location: "any", url: anyURL())
+    }
+    
+    func anyURL() -> URL {
+        return URL(string: "http://any-url.com")!
+    }
+
     private func cachesDirectory() -> URL {
         return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
     }
