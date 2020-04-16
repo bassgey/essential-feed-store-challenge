@@ -14,17 +14,7 @@ extension Realm: RealmAdapter {}
 class RealmFeedStoreIntegrationTests: XCTestCase {
     
     override func setUp() {
-        let realmURL = testSpecificPersistentStoreURL()
-        let realmURLs = [
-            realmURL,
-            realmURL.appendingPathExtension("lock"),
-            realmURL.appendingPathExtension("note"),
-            realmURL.appendingPathExtension("management")
-        ]
-        
-        for URL in realmURLs {
-            try? FileManager.default.removeItem(at: URL)
-        }
+        setupEmptyStoreState()
     }
     
     func test_retrieve_deliversEmptyOnEmptyCache() {
@@ -59,5 +49,23 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     
     private func testSpecificPersistentStoreRealmConfiguration() -> Realm.Configuration {
         return Realm.Configuration(fileURL: testSpecificPersistentStoreURL(), objectTypes: RealmFeedStore.getRequiredModelsType())
+    }
+    
+    private func setupEmptyStoreState() {
+        removeStoreDB()
+    }
+    
+    private func removeStoreDB() {
+        let realmURL = testSpecificPersistentStoreURL()
+        let realmURLs = [
+            realmURL,
+            realmURL.appendingPathExtension("lock"),
+            realmURL.appendingPathExtension("note"),
+            realmURL.appendingPathExtension("management")
+        ]
+        
+        for URL in realmURLs {
+            try? FileManager.default.removeItem(at: URL)
+        }
     }
 }
