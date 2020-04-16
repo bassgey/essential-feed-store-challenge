@@ -66,16 +66,15 @@ class RealmFeedStoreIntegrationTests: XCTestCase {
     }
     
     // MARK: - Helpers
-    
-    func uniqueImageFeed() -> [LocalFeedImage] {
+    private func uniqueImageFeed() -> [LocalFeedImage] {
         return [uniqueImage(), uniqueImage()]
     }
     
-    func uniqueImage() -> LocalFeedImage {
+    private func uniqueImage() -> LocalFeedImage {
         return LocalFeedImage(id: UUID(), description: "any", location: "any", url: anyURL())
     }
     
-    func anyURL() -> URL {
+    private func anyURL() -> URL {
         return URL(string: "http://any-url.com")!
     }
 
