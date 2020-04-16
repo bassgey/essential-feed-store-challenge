@@ -106,7 +106,7 @@ class RealmFeedStoreIntegrationTests: XCTestCase, FeedStoreSpecs {
     }
     
     private func testSpecificPersistentStoreURL() -> URL {
-        return cachesDirectory().appendingPathComponent("\(type(of: self))")
+        return cachesDirectory().appendingPathComponent("\(type(of: self)).realm")
     }
     
     private func testSpecificPersistentStoreRealmConfiguration() -> Realm.Configuration {
@@ -129,5 +129,32 @@ class RealmFeedStoreIntegrationTests: XCTestCase, FeedStoreSpecs {
         for URL in realmURLs {
             try? FileManager.default.removeItem(at: URL)
         }
+    }
+}
+
+extension RealmFeedStoreIntegrationTests {
+    
+    func test_retrieveWithSUTInstancesInDifferentQueues_deliversFoundValuesOnNonEmptyCache() {
+        let feed = self.uniqueImageFeed()
+        let timestamp = Date()
+        
+        var insertionSUT: FeedStore?
+        let insertionQueue = DispatchQueue(label: "Insertion \(self.name)", qos: .background, attributes: .concurrent)
+        let exp = expectation(description: "Wait insertion to realm db")
+        insertionQueue.async { [weak self] in
+            guard let self = self else { return }
+            
+            let realmConfiguration = self.testSpecificPersistentStoreRealmConfiguration()
+            insertionSUT = RealmFeedStore { try Realm(configuration: realmConfiguration) }
+            insertionSUT?.insert(feed, timestamp: timestamp) { _ in
+                exp.fulfill()
+            }
+        }
+        
+        wait(for: [exp], timeout: 2.0)
+        insertionSUT = nil
+        
+        let retrieveSUT = makeSUT()
+        expect(retrieveSUT, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
 }
