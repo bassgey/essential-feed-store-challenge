@@ -169,6 +169,22 @@ extension RealmFeedStoreIntegrationTests {
         expect(retrieveSUT, toRetrieve: .empty)
     }
     
+    func test_deleteWithSUTInstancesInDifferentQueues_emptiesPreviouslyInsertedCacheChekingAllSteps() {
+        let retrieveSUT = makeSUT()
+        
+        let feed = self.uniqueImageFeed()
+        let timestamp = Date()
+        let queue = DispatchQueue(label: "Operations \(self.name)", qos: .userInitiated, attributes: .concurrent)
+        
+        insert(cache: (feed: feed, timestamp: timestamp), on: queue)
+        
+        expect(retrieveSUT, toRetrieve: .found(feed: feed, timestamp: timestamp))
+        
+        delete(on: queue)
+        
+        expect(retrieveSUT, toRetrieve: .empty)
+    }
+
     // MARK: - Helpers
     private func insert(cache: (feed: [LocalFeedImage], timestamp: Date), on queue: DispatchQueue) {
         
