@@ -17,6 +17,7 @@ public protocol RealmAdapter {
     func refresh() -> Bool
 }
 
+extension Realm: RealmAdapter {}
 
 public final class RealmFeedStore: FeedStore {
     

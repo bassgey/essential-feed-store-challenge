@@ -9,7 +9,6 @@ import XCTest
 import FeedStoreChallenge
 import RealmSwift
 
-extension Realm: RealmAdapter {}
 
 class RealmFeedStoreIntegrationTests: XCTestCase, FeedStoreSpecs {
     
