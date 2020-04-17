@@ -36,8 +36,42 @@ Finally, add to this README file:
 
 ### Comments and remarks you think other developers will find useful.
 
-...
+#### `setUp()` & `tearDown()` methods
+
+In the `RealmFeedStoreTests` class, a _"InMemory"_ realm implementation is used.
+When async queue management for the FeedStore operations was introduced, ARC has started to release the DB between the call of write and read cache operations destroying all the content of the cache 
+(this behaviour happen because the realm object must be instantiated in every thread to avoid race conditions and Realm Exceptions).
+This does not happen if we use persistent storage, but for the test, I have decided to set up a strong reference to the realm _"In Memory"_ object.
+
+The `setUp()` and `tearDown()` methods are used to **set** and **release** this realm reference avoiding the release of the DB.
+
+
+#### `RealmAdapter` protocol, why I'm not convinced...🤔
+
+When I was searching for a method to simulate writing errors to realm (I'm new to TDD), I found the nice solution of [danillahtin](https://github.com/danillahtin) in this course challenge, and I have decided to follow his methodology to stub the realm component.
+
+Practically, the `RealmAdapter` protocol exposes the `Realm` methods needed for the `(Realm)FeedStore` implementation 
+(`Realm` component is a `struct`, the protocol is the best way to achieve this functionality); so in the tests, it is possible to use a Stub (`RealmStub`)
+to inject the behaviour we want to test (generate a write error in my case).
+
+> Notice that I have modified the parameter of the constructor passing the closure that returns the `Realm` instance (instead of a `Realm.Configuration` as previously): this because the Realm instances are **thread-confined** 
+so calling the closure into the async code block make the instance to respect the [Realm requisites](https://realm.io/docs/swift/latest/#threading).
+
+##### Ok, why I'm not convinced?
+
+This solution breaks some rules like:
+- Don’t Mock Types You Don’t Own: the realm library could change breaking the protocol and the tests
+- I have to _rewrite_ all the `Realm` methods used by the `RealmFeedStore` though I have to modify only the `write` method to simulate the error
+- The protocol was introduced only to test a specific behaviour (inject write error)
+- I have to make the original `Realm` struct to conforms to the `RealmAdapter` protocol
+
+#### `RealmFeedStore.getRequiredModelsType()`
+I have created this method for various reasons:
+- hide implementation details from other modules (this let me set access modifiers of realm models `internal`)
+- permit to set up the `Realm.Configuration` in isolation (dedicating a separate DB to manage cache) or in other modes (one DB for all for example)
+- specifying object types in `Realm.Configuration` instance perform better
+
 
 ### The Dependency Diagram demonstrating the architecture of your solution. 
 
-...
+![RealmFeedStore Diagram](RealmFeedStoreDiagram.png)
