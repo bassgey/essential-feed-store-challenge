@@ -157,29 +157,15 @@ extension RealmFeedStoreIntegrationTests {
     
     func test_deleteWithSUTInstancesInDifferentQueues_emptiesPreviouslyInsertedCache() {
         let retrieveSUT = makeSUT()
-        var sut: FeedStore?
         
         let feed = self.uniqueImageFeed()
         let timestamp = Date()
-        let opQueue = DispatchQueue(label: "Operations \(self.name)", qos: .userInitiated, attributes: .concurrent)
-                
-        let exp1 = expectation(description: "Wait operations to realm db")
-        opQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            let realmConfiguration = self.testSpecificPersistentStoreRealmConfiguration()
-            sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
-            
-            sut?.insert(feed, timestamp: timestamp) { _ in
-                sut?.deleteCachedFeed { _ in
-                    exp1.fulfill()
-                }
-            }
-        }
+        let queue = DispatchQueue(label: "Operations \(self.name)", qos: .userInitiated, attributes: .concurrent)
         
-        wait(for: [exp1], timeout: 2.0)
-        sut = nil
-
+        insert(cache: (feed: feed, timestamp: timestamp), on: queue)
+        
+        delete(on: queue)
+        
         expect(retrieveSUT, toRetrieve: .empty)
     }
     
@@ -196,6 +182,25 @@ extension RealmFeedStoreIntegrationTests {
             sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
             
             sut?.insert(cache.feed, timestamp: cache.timestamp) { _ in
+                exp.fulfill()
+            }
+        }
+        
+        wait(for: [exp], timeout: 2.0)
+        sut = nil
+    }
+    
+    private func delete(on queue: DispatchQueue) {
+        var sut: FeedStore?
+        let exp = expectation(description: "Wait deletion to realm db")
+        
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            
+            let realmConfiguration = self.testSpecificPersistentStoreRealmConfiguration()
+            sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
+            
+            sut?.deleteCachedFeed { _ in
                 exp.fulfill()
             }
         }
