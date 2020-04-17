@@ -189,7 +189,6 @@ extension RealmFeedStoreIntegrationTests {
         }
         
         wait(for: [exp], timeout: 2.0)
-        sut = nil
     }
     
     private func delete(on queue: DispatchQueue) {
@@ -208,6 +207,5 @@ extension RealmFeedStoreIntegrationTests {
         }
         
         wait(for: [exp], timeout: 2.0)
-        sut = nil
     }
 }
