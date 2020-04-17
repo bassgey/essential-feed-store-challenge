@@ -145,26 +145,13 @@ class RealmFeedStoreIntegrationTests: XCTestCase, FeedStoreSpecs {
 extension RealmFeedStoreIntegrationTests {
     
     func test_retrieveWithSUTInstancesInDifferentQueues_deliversFoundValuesOnNonEmptyCache() {
+        let retrieveSUT = makeSUT()
+        let queue = DispatchQueue(label: "Insertion \(self.name)", qos: .background, attributes: .concurrent)
         let feed = self.uniqueImageFeed()
         let timestamp = Date()
+
+        insert(cache: (feed: feed, timestamp: timestamp), on: queue)
         
-        var insertionSUT: FeedStore?
-        let insertionQueue = DispatchQueue(label: "Insertion \(self.name)", qos: .background, attributes: .concurrent)
-        let exp = expectation(description: "Wait insertion to realm db")
-        insertionQueue.async { [weak self] in
-            guard let self = self else { return }
-            
-            let realmConfiguration = self.testSpecificPersistentStoreRealmConfiguration()
-            insertionSUT = RealmFeedStore { try Realm(configuration: realmConfiguration) }
-            insertionSUT?.insert(feed, timestamp: timestamp) { _ in
-                exp.fulfill()
-            }
-        }
-        
-        wait(for: [exp], timeout: 2.0)
-        insertionSUT = nil
-        
-        let retrieveSUT = makeSUT()
         expect(retrieveSUT, toRetrieve: .found(feed: feed, timestamp: timestamp))
     }
     
@@ -193,5 +180,26 @@ extension RealmFeedStoreIntegrationTests {
         sut = nil
 
         expect(retrieveSUT, toRetrieve: .empty)
+    }
+    
+    // MARK: - Helpers
+    private func insert(cache: (feed: [LocalFeedImage], timestamp: Date), on queue: DispatchQueue) {
+        
+        var sut: FeedStore?
+        let exp = expectation(description: "Wait insertion to realm db")
+        
+        queue.async { [weak self] in
+            guard let self = self else { return }
+            
+            let realmConfiguration = self.testSpecificPersistentStoreRealmConfiguration()
+            sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
+            
+            sut?.insert(cache.feed, timestamp: cache.timestamp) { _ in
+                exp.fulfill()
+            }
+        }
+        
+        wait(for: [exp], timeout: 2.0)
+        sut = nil
     }
 }
