@@ -170,10 +170,11 @@ extension RealmFeedStoreIntegrationTests {
             let realmConfiguration = self.testSpecificPersistentStoreRealmConfiguration()
             sut = RealmFeedStore { try Realm(configuration: realmConfiguration) }
             
-            sut?.insert(feed, timestamp: timestamp) { _ in }
-            sut?.deleteCachedFeed { _ in }
-            
-            exp1.fulfill()
+            sut?.insert(feed, timestamp: timestamp) { _ in
+                sut?.deleteCachedFeed { _ in
+                    exp1.fulfill()
+                }
+            }
         }
         
         wait(for: [exp1], timeout: 2.0)
